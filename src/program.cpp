@@ -465,11 +465,11 @@ void ProgramGenerator::emitTest(std::shared_ptr<EmitCtx> ctx,
                                 std::ostream &stream) {
     Options &options = Options::getInstance();
     stream << "#include \"init.h\"\n";
-    if (options.isC()) {
+    if (options.isC() || options.isNautilus()) {
         MinCall::emitCDefinition(ctx, stream);
         MaxCall::emitCDefinition(ctx, stream);
     }
-    if (options.isCXX())
+    if (options.isCXX() && !options.isNautilus())
         stream << "#include <algorithm>\n";
     else if (options.isSYCL()) {
         stream << "#include <CL/sycl.hpp>\n";

@@ -144,6 +144,12 @@ std::string IntegralType::getNameImpl(std::shared_ptr<EmitCtx> ctx,
         ERROR("Can't give a name without a context");
 
     std::string ret = std::move(raw_name);
+
+    Options &options = Options::getInstance();
+    if (options.isNautilus()) {
+        return "val<" + ret + ">";
+    }
+
     if (ctx->useIspcTypes()) {
         ret = getIspcNameHelper();
         if (getIntTypeId() != IntTypeID::BOOL) {

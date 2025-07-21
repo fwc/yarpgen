@@ -148,6 +148,7 @@ enum class LoopEndKind { CONST, VAR, EXPR, MAX_LOOP_KIND };
 enum class OptionKind {
     HELP,
     VERSION,
+    NAUTILUS,
     SEED,
     STD,
     INP_AS_ARGS,

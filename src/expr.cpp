@@ -3124,7 +3124,7 @@ void MinMaxCallBase::emit(std::shared_ptr<EmitCtx> ctx, std::ostream &stream,
                           std::string offset) {
     Options &options = Options::getInstance();
     stream << offset;
-    if (options.isCXX())
+    if (options.isCXX() && !options.isNautilus())
         stream << "std::";
     if (kind == LibCallKind::MAX)
         stream << "max";

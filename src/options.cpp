@@ -68,6 +68,15 @@ std::vector<OptionDescr> yarpgen::OptionParser::options_set{
      OptionParser::printVersion,
      "",
      {}},
+    {OptionKind::NAUTILUS,
+     "",
+     "--nautilus",
+     true,
+     "Emit code for nautilus",
+     "Unreachable Error",
+     OptionParser::parseNautilus,
+     "false",
+     {"false", "true"}},
     {OptionKind::SEED,
      "-s",
      "--seed",
@@ -217,6 +226,14 @@ void OptionParser::printVersion(std::string arg) {
     if (!arg.empty())
         exit(-1);
     exit(0);
+}
+
+void OptionParser::parseNautilus(std::string arg) {
+    auto& options = Options::getInstance();
+    if (arg == "false") options.setNautilus(false);
+    else if (arg == "true") options.setNautilus(true);
+    else
+        printHelpAndExit("Can't recognize checking algorithm");
 }
 
 void OptionParser::printHelpAndExit(std::string error_msg) {

@@ -75,6 +75,7 @@ class OptionParser {
 
   private:
     static void printVersion(std::string arg);
+    static void parseNautilus(std::string arg);
     static void printHelpAndExit(std::string error_msg = "");
     static bool optionStartsWith(char *option, const char *test);
     static bool parseShortArg(size_t argc, size_t &argv_iter, char **&argv,
@@ -129,6 +130,9 @@ class Options {
     bool isISPC() { return std == LangStd::ISPC; }
     bool isSYCL() { return std == LangStd::SYCL; }
 
+    void setNautilus(bool is_naut) { is_nautilus = is_naut; };
+    bool isNautilus() { return is_nautilus; }
+
     void setCheckAlgo(CheckAlgo val) { check_algo = val; }
     CheckAlgo getCheckAlgo() { return check_algo; }
 
@@ -172,7 +176,7 @@ class Options {
 
   private:
     Options()
-        : seed(0), std(LangStd::CXX), check_algo(CheckAlgo::HASH),
+        : seed(0), std(LangStd::CXX), is_nautilus(false), check_algo(CheckAlgo::HASH),
           inp_as_args(OptionLevel::SOME), emit_align_attr(OptionLevel::SOME),
           unique_align_size(false),
           align_size(AlignmentSize::MAX_ALIGNMENT_SIZE), allow_dead_data(false),
@@ -185,6 +189,7 @@ class Options {
 
     uint64_t seed;
     LangStd std;
+    bool is_nautilus;
     CheckAlgo check_algo;
     // Pass input data to a test function as parameters
     OptionLevel inp_as_args;
