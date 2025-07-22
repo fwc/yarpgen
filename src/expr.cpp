@@ -2516,6 +2516,10 @@ Expr::EvalResType AssignmentExpr::rebuild(EvalCtx &ctx) {
 void AssignmentExpr::emit(std::shared_ptr<EmitCtx> ctx, std::ostream &stream,
                           std::string offset) {
     stream << offset;
+    Options &options = Options::getInstance();
+    if (options.isNautilus()) {
+        stream << "*";
+    }
     to->emit(ctx, stream);
     stream << " = ";
 
@@ -2524,7 +2528,6 @@ void AssignmentExpr::emit(std::shared_ptr<EmitCtx> ctx, std::ostream &stream,
     // assigned value to uniform.
     bool cast_to_uniform = false;
     if (versioning_iter != nullptr) {
-        Options &options = Options::getInstance();
         cast_to_uniform = options.isISPC() &&
                           to->getValue()->getType()->isUniform() &&
                           !versioning_iter->getType()->isUniform();

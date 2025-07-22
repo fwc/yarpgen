@@ -22,6 +22,7 @@ limitations under the License.
 #include <fstream>
 #include <memory>
 #include <sstream>
+#include <streambuf>
 
 using namespace yarpgen;
 
@@ -264,6 +265,7 @@ void ProgramGenerator::emitCheck(std::shared_ptr<EmitCtx> ctx,
 
 // This buffer tracks what input data we pass as a parameters to test functions
 static std::vector<std::string> pass_as_param_buffer;
+static std::vector<std::string> pass_as_pointer_param_buffer;
 static bool any_vars_as_params = false;
 static bool any_arrays_as_params = false;
 
@@ -285,6 +287,14 @@ static void emitVarExtDecl(std::shared_ptr<EmitCtx> ctx, std::ostream &stream,
             else if (options.inpAsArgs() == OptionLevel::ALL)
                 pass_as_param = true;
         }
+
+        if (options.isNautilus()) {
+            if (!inp_category) {
+                pass_as_pointer_param_buffer.push_back(var->getName(ctx));
+            }
+            pass_as_param = true;
+        }
+
 
         if (pass_as_param) {
             pass_as_param_buffer.push_back(var->getName(ctx));
@@ -315,6 +325,14 @@ static void emitArrayExtDecl(std::shared_ptr<EmitCtx> ctx, std::ostream &stream,
             else if (options.inpAsArgs() == OptionLevel::ALL)
                 pass_as_param = true;
         }
+
+        if (options.isNautilus()) {
+            if (!inp_category) {
+                pass_as_pointer_param_buffer.push_back(array->getName(ctx));
+            }
+            pass_as_param = true;
+        }
+
 
         if (pass_as_param) {
             pass_as_param_buffer.push_back(array->getName(ctx));
@@ -396,10 +414,28 @@ static bool emitVarFuncParam(std::shared_ptr<EmitCtx> ctx, std::ostream &stream,
             continue;
 
         stream << placeSep(emit_any);
+
+        if (std::find(pass_as_pointer_param_buffer.begin(), pass_as_pointer_param_buffer.end(),
+                      var->getName(ctx)) != pass_as_pointer_param_buffer.end()) {
+            if (emit_type) {
+                // oh lawd, have mercy
+                options.setNautilus(false);
+
+                stream << "val<" << var->getType()->getName(ctx) << "*>" << " " << var->getName(ctx);
+
+                options.setNautilus(true);
+            } else {
+                stream << "&" << var->getName(ctx);
+            }
+            emit_any = true;
+        } else {
+
         if (emit_type)
             stream << var->getType()->getName(ctx) << " ";
         stream << var->getName(ctx);
         emit_any = true;
+
+        }
     }
     ctx->setSYCLPrefix("");
     return emit_any;
@@ -422,6 +458,12 @@ static void emitArrayFuncParam(std::shared_ptr<EmitCtx> ctx,
         assert(type->isArrayType() && "Array should have an Array type");
         auto array_type = std::static_pointer_cast<ArrayType>(type);
         stream << placeSep(prev_category_exist || !first);
+
+        if (std::find(pass_as_pointer_param_buffer.begin(), pass_as_pointer_param_buffer.end(),
+                      array->getName(ctx)) != pass_as_pointer_param_buffer.end()) {
+            stream << "*";
+        }
+
         if (emit_type)
             stream << array_type->getBaseType()->getName(ctx) << " ";
         stream << array->getName(ctx) << " ";
@@ -464,7 +506,9 @@ void emitSYCLAccessors(std::shared_ptr<EmitCtx> ctx, std::ostream &stream,
 void ProgramGenerator::emitTest(std::shared_ptr<EmitCtx> ctx,
                                 std::ostream &stream) {
     Options &options = Options::getInstance();
+    if (!options.isNautilus()) {
     stream << "#include \"init.h\"\n";
+    }
     if (options.isC() || options.isNautilus()) {
         MinCall::emitCDefinition(ctx, stream);
         MaxCall::emitCDefinition(ctx, stream);
@@ -484,7 +528,11 @@ void ProgramGenerator::emitTest(std::shared_ptr<EmitCtx> ctx,
     }
     stream << "void test(";
 
-    bool emit_any = emitVarFuncParam(ctx, stream, ext_inp_sym_tbl->getVars(),
+    auto vars = ext_inp_sym_tbl->getVars();
+    for (auto& var : ext_out_sym_tbl->getVars()) {
+        vars.push_back(var);
+    }
+    bool emit_any = emitVarFuncParam(ctx, stream, vars,
                                      true, options.isISPC());
 
     emitArrayFuncParam(ctx, stream, emit_any, ext_inp_sym_tbl->getArrays(),
@@ -542,8 +590,12 @@ void ProgramGenerator::emitMain(std::shared_ptr<EmitCtx> ctx,
 
     stream << "void test(";
 
+    auto vars = ext_inp_sym_tbl->getVars();
+    for (auto& var : ext_out_sym_tbl->getVars()) {
+        vars.push_back(var);
+    }
     bool emit_any =
-        emitVarFuncParam(ctx, stream, ext_inp_sym_tbl->getVars(), true, false);
+        emitVarFuncParam(ctx, stream, vars, true, false);
     emitArrayFuncParam(ctx, stream, emit_any, ext_inp_sym_tbl->getArrays(),
                        true, false, true);
 
@@ -556,7 +608,7 @@ void ProgramGenerator::emitMain(std::shared_ptr<EmitCtx> ctx,
     stream << "    test(";
 
     emit_any =
-        emitVarFuncParam(ctx, stream, ext_inp_sym_tbl->getVars(), false, false);
+        emitVarFuncParam(ctx, stream, vars, false, false);
 
     emitArrayFuncParam(ctx, stream, emit_any, ext_inp_sym_tbl->getArrays(),
                        false, false, false);
@@ -596,6 +648,65 @@ void ProgramGenerator::emit() {
         if (!out_file)
             ERROR(std::string("Can't open file ") + file_name);
     };
+
+    if (options.isNautilus()) {
+
+        for (auto& var : ext_inp_sym_tbl->getVars()) {
+            pass_as_param_buffer.push_back(var->getName(emit_ctx));
+        }
+        for (auto& var : ext_out_sym_tbl->getVars()) {
+            pass_as_param_buffer.push_back(var->getName(emit_ctx));
+            pass_as_pointer_param_buffer.push_back(var->getName(emit_ctx));
+        }
+
+        open_file("naut.cpp");
+
+        out_file << "/*\n";
+        options.dump(out_file);
+        out_file << "*/\n";
+        out_file << "\n";
+        out_file << "#include <nautilus/core.hpp>\n";
+        out_file << "#include <nautilus/Engine.hpp>\n";
+        out_file << "\n";
+        out_file << "using namespace nautilus;\n";
+        out_file << "\n";
+        emitTest(emit_ctx, out_file);
+
+        emitCheckFunc(out_file);
+        auto isNaut = options.isNautilus();
+        options.setNautilus(false);
+        emitDecl(emit_ctx, out_file);
+        options.setNautilus(isNaut);
+        emitInit(emit_ctx, out_file);
+        emitCheck(emit_ctx, out_file);
+
+        out_file << "int main() {\n";
+        out_file << "  init();\n";
+        out_file << "  engine::Options options;\n";
+        out_file << "  options.setOption(\"engine.Compilation\", false);\n";
+        out_file << "  options.setOption(\"dump.all\", true);\n";
+        out_file << "  auto engine = engine::NautilusEngine(options);\n";
+        out_file << "  auto function = engine.registerFunction(test);\n";
+        out_file << "  function(";
+
+        auto vars = ext_inp_sym_tbl->getVars();
+        for (auto& var : ext_out_sym_tbl->getVars()) {
+            vars.push_back(var);
+        }
+        auto emit_any = emitVarFuncParam(emit_ctx, out_file, vars, false, false);
+
+        emitArrayFuncParam(emit_ctx, out_file, emit_any, ext_inp_sym_tbl->getArrays(),
+                           false, false, false);
+
+        out_file << ");\n";
+        out_file << "  checksum();\n";
+        out_file << "  std::cout << \"Result: \" << seed << std::endl;\n";
+        out_file << "}\n";
+
+        out_file.close();
+
+        return;
+    }
 
     open_file("init.h");
     emitExtDecl(emit_ctx, out_file);
