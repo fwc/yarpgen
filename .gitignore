@@ -22,3 +22,7 @@ scripts/testing/result/**
 build/
 out/
 .DS_Store
+
+.cache/
+.vscode/
+compile_commands.json
