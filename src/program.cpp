@@ -673,12 +673,14 @@ void ProgramGenerator::emit() {
         emitTest(emit_ctx, out_file);
 
         emitCheckFunc(out_file);
+
+        // temporarily disable val< > wrapping
         auto isNaut = options.isNautilus();
         options.setNautilus(false);
         emitDecl(emit_ctx, out_file);
-        options.setNautilus(isNaut);
         emitInit(emit_ctx, out_file);
         emitCheck(emit_ctx, out_file);
+        options.setNautilus(isNaut);
 
         out_file << "int main() {\n";
         out_file << "  init();\n";
