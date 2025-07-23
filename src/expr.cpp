@@ -2813,6 +2813,9 @@ void ReductionExpr::emit(std::shared_ptr<EmitCtx> ctx, std::ostream &stream,
     }
 
     stream << offset;
+    if (Options::getInstance().isNautilus()) {
+        stream << "*";
+    }
     to->emit(ctx, stream);
 
     if (bin_op != BinaryOp::MAX_BIN_OP) {
