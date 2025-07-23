@@ -64,7 +64,9 @@ ProgramGenerator::ProgramGenerator() : hash_seed(0) {
 
 void ProgramGenerator::emitCheckFunc(std::ostream &stream) {
     std::ostream &out_file = stream;
+    if (!Options::getInstance().isNautilus()) {
     out_file << "#include <stdio.h>\n\n";
+    }
 
     Options &options = Options::getInstance();
     if (options.getCheckAlgo() == CheckAlgo::ASSERTS) {
