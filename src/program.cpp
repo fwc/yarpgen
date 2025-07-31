@@ -669,6 +669,7 @@ void ProgramGenerator::emit() {
         out_file << "\n";
         out_file << "#include <nautilus/core.hpp>\n";
         out_file << "#include <nautilus/Engine.hpp>\n";
+        out_file << "#include <cassert>\n";
         out_file << "\n";
         out_file << "using namespace nautilus;\n";
         out_file << "\n";
@@ -704,7 +705,7 @@ void ProgramGenerator::emit() {
 
         out_file << ");\n";
         out_file << "  checksum();\n";
-        out_file << "  std::cout << \"Result: \" << seed << std::endl;\n";
+        out_file << "  assert(!value_mismatch);\n";
         out_file << "}\n";
 
         out_file.close();

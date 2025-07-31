@@ -18,6 +18,7 @@ limitations under the License.
 //////////////////////////////////////////////////////////////////////////////
 
 #include "options.h"
+#include "enums.h"
 #include "utils.h"
 #include <cstring>
 #include <functional>
@@ -230,9 +231,12 @@ void OptionParser::printVersion(std::string arg) {
 
 void OptionParser::parseNautilus(std::string arg) {
     auto& options = Options::getInstance();
-    if (arg == "false") options.setNautilus(false);
-    else if (arg == "true") options.setNautilus(true);
-    else
+    if (arg == "false") {
+        options.setNautilus(false);
+    } else if (arg == "true") {
+        options.setNautilus(true);
+        options.setCheckAlgo(CheckAlgo::ASSERTS);
+    } else
         printHelpAndExit("Can't recognize checking algorithm");
 }
 
