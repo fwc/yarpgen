@@ -29,6 +29,9 @@ if(NOT CMAKE_BUILD_TYPE)
     message(STATUS "Build type not specified: Use Release by default.")
 endif(NOT CMAKE_BUILD_TYPE)
 
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O0")
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 find_package(Git)
 set(GIT_HASH "no_version_info")
 if(GIT_FOUND)

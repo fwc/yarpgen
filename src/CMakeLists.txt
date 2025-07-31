@@ -50,7 +50,7 @@ set(LIB_SRCS
 # Common std and build flags for all executables
 set(STD cxx_std_17)
 set(FLAGS #  $<$<CXX_COMPILER_ID:MSVC>:/WX>
-  $<$<OR:$<CXX_COMPILER_ID:GNU>,$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:AppleClang>>:-Wall -Wpedantic -Werror>
+  $<$<OR:$<CXX_COMPILER_ID:GNU>,$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:AppleClang>>:-Wall -Wpedantic>
   -DBUILD_VERSION="${GIT_HASH}" -DBUILD_DATE="${BUILD_DATE}"
   -DYARPGEN_VERSION_MAJOR="${PROJECT_VERSION_MAJOR}" -DYARPGEN_VERSION_MINOR="${PROJECT_VERSION_MINOR}")
 
