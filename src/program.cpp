@@ -267,7 +267,7 @@ void ProgramGenerator::emitCheck(std::shared_ptr<EmitCtx> ctx,
 
 // This buffer tracks what input data we pass as a parameters to test functions
 static std::vector<std::string> pass_as_param_buffer;
-static std::vector<std::string> pass_as_pointer_param_buffer;
+std::vector<std::string> pass_as_pointer_param_buffer;
 static bool any_vars_as_params = false;
 static bool any_arrays_as_params = false;
 

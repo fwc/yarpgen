@@ -29,6 +29,8 @@ limitations under the License.
 #include "ir_node.h"
 #include "ir_value.h"
 
+extern std::vector<std::string> pass_as_pointer_param_buffer;
+
 namespace yarpgen {
 
 class EvalCtx;
@@ -126,7 +128,12 @@ class ScalarVarUseExpr : public VarUseExpr {
 
     void emit(std::shared_ptr<EmitCtx> ctx, std::ostream &stream,
               std::string offset = "") final {
+        if (std::find(pass_as_pointer_param_buffer.begin(), pass_as_pointer_param_buffer.end(),
+              value->getName(ctx)) != pass_as_pointer_param_buffer.end()) {
+        stream << offset << "*" << value->getName(ctx);
+              } else {
         stream << offset << value->getName(ctx);
+              }
     };
     static std::shared_ptr<ScalarVarUseExpr>
     create(std::shared_ptr<PopulateCtx> ctx);

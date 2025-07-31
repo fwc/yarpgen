@@ -2517,9 +2517,9 @@ void AssignmentExpr::emit(std::shared_ptr<EmitCtx> ctx, std::ostream &stream,
                           std::string offset) {
     stream << offset;
     Options &options = Options::getInstance();
-    if (options.isNautilus()) {
-        stream << "*";
-    }
+    //if (options.isNautilus()) {
+    //    stream << "*";
+    //}
     to->emit(ctx, stream);
     stream << " = ";
 
@@ -2813,9 +2813,9 @@ void ReductionExpr::emit(std::shared_ptr<EmitCtx> ctx, std::ostream &stream,
     }
 
     stream << offset;
-    if (Options::getInstance().isNautilus()) {
-        stream << "*";
-    }
+    //if (Options::getInstance().isNautilus()) {
+    //    stream << "*";
+    //}
     to->emit(ctx, stream);
 
     if (bin_op != BinaryOp::MAX_BIN_OP) {
