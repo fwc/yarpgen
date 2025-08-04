@@ -693,7 +693,7 @@ void ProgramGenerator::emit() {
         out_file << "int main() {\n";
         out_file << "  init();\n";
         out_file << "  engine::Options options;\n";
-        out_file << "  options.setOption(\"engine.Compilation\", false);\n";
+        out_file << "  options.setOption(\"engine.Compilation\", true);\n";
         out_file << "  options.setOption(\"dump.all\", true);\n";
         out_file << "  auto engine = engine::NautilusEngine(options);\n";
         out_file << "  auto function = engine.registerFunction(test);\n";
