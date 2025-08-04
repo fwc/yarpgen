@@ -653,6 +653,11 @@ void ProgramGenerator::emit() {
 
     if (options.isNautilus()) {
 
+        if (!ext_inp_sym_tbl->getArrays().empty() || !ext_out_sym_tbl->getArrays().empty()) {
+            std::cout << "test would contain arrays, skipping" << std::endl;
+            std::exit(0);
+        }
+
         for (auto& var : ext_inp_sym_tbl->getVars()) {
             pass_as_param_buffer.push_back(var->getName(emit_ctx));
         }
